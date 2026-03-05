@@ -1,6 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -16,10 +17,27 @@ class DatasetAnalysisResult:
 
 
 def load_dataset(file_path: str) -> pd.DataFrame:
-    if file_path.lower().endswith(".csv"):
+    extension = Path(file_path).suffix.lower()
+
+    if extension == ".csv":
         return pd.read_csv(file_path)
-    if file_path.lower().endswith((".xlsx", ".xls")):
-        return pd.read_excel(file_path)
+
+    if extension == ".xlsx":
+        try:
+            return pd.read_excel(file_path, engine="openpyxl")
+        except ImportError as exc:
+            raise ImportError(
+                "Reading .xlsx files requires 'openpyxl'. Add 'openpyxl>=3.1.0' to dependencies."
+            ) from exc
+
+    if extension == ".xls":
+        try:
+            return pd.read_excel(file_path, engine="xlrd")
+        except ImportError as exc:
+            raise ImportError(
+                "Reading .xls files requires 'xlrd'. Add 'xlrd>=2.0.1' to dependencies."
+            ) from exc
+
     raise ValueError("Unsupported file type. Please upload CSV or Excel.")
 
 
